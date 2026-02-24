@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>TUVAL STUDIO 6.5</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lumina Poster Studio Pro | v11.5</title>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Kanit:wght@800&family=Lexend:wght@700&family=Outfit:wght@900&family=Philosopher:wght@700&family=Russo+One&family=Syne:wght@800&family=Tenor+Sans&family=Work+Sans:wght@900&family=Yanone+Kaffeesatz:wght@700&display=swap&subset=latin-ext" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        :root {
+            --accent: #ff3e00;
+            --sidebar-bg: #111111;
+            --canvas-bg: #1e1e1e;
+            --border: #333333;
+            --success: #2ecc71;
+            --pdf-color: #e74c3c;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--canvas-bg); color: white; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        header { height: 60px; background: #000; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); z-index: 100; }
+        .logo { font-family: 'Bebas Neue', cursive; font-size: 28px; letter-spacing: 2px; color: var(--accent); }
+
+        .main-app { display: flex; flex: 1; overflow: hidden; }
+
+        .side-tools { width: 280px; background: var(--sidebar-bg); border-right: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+        h4 { font-size: 11px; text-transform: uppercase; color: #666; letter-spacing: 1px; margin-bottom: 5px; border-bottom: 1px solid #222; padding-bottom: 5px; }
+
+        .btn-action { background: #222; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 4px; cursor: pointer; font-size: 13px; text-align: left; transition: 0.2s; width: 100%; }
+        .btn-action:hover { border-color: var(--accent); background: #2a2a2a; }
+        .btn-action i { margin-right: 10px; color: var(--accent); width: 20px; text-align: center; }
+
+        .shape-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .btn-shape { background: #1a1a1a; border: 1px solid var(--border); color: #ccc; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 10px; text-align: center; transition: 0.2s; }
+        .btn-shape:hover { border-color: var(--accent); color: white; background: #222; }
+
+        .viewport { flex: 1; position: relative; overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 80px; background-image: radial-gradient(#333 1px, transparent 1px); background-size: 30px 30px; }
+        #poster-canvas { background: white; position: relative; box-shadow: 0 0 50px rgba(0, 0, 0, 0.5); transform-origin: top center; width: 842px; height: 1191px; transition: transform 0.1s ease-out; overflow: hidden; }
+
+        .element { position: absolute; min-width: 20px; min-height: 20px; cursor: move; display: flex; align-items: center; justify-content: center; border: 2px solid transparent; padding: 5px; box-sizing: border-box; }
+        .element.active { border: 2px solid var(--accent); z-index: 100 !important; }
+        .element img { pointer-events: none; width: 100%; height: 100%; object-fit: contain; }
+
+        /* SVG Şekil Desteği (Kareleşmeyi önlemek için clip-path yerine SVG kullanıyoruz) */
+        .shape-svg { width: 100%; height: 100%; display: block; }
+
+        .resizer { width: 12px; height: 12px; background: white; border: 2px solid var(--accent); position: absolute; border-radius: 50%; display: none; z-index: 10; }
+        .element.active .resizer { display: block; }
+        .resizer.br { right: -6px; bottom: -6px; cursor: nwse-resize; }
+
+        .guide { position: absolute; background: #ff4444; z-index: 999; display: none; pointer-events: none; }
+        #guide-v { width: 1px; height: 100%; top: 0; }
+        #guide-h { height: 1px; width: 100%; left: 0; }
+
+        .properties-panel { width: 300px; background: var(--sidebar-bg); border-left: 1px solid var(--border); padding: 20px; overflow-y: auto; }
+        .control-group { margin-bottom: 15px; }
+        label { display: block; font-size: 10px; color: #888; margin-bottom: 6px; text-transform: uppercase; font-weight: bold; }
+        select, input { width: 100%; padding: 8px; background: #000; border: 1px solid var(--border); color: white; border-radius: 4px; font-size: 13px; }
+
+        .export-group { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-export { flex: 1; padding: 12px; border: none; border-radius: 6px; color: white; font-weight: 900; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; transition: 0.3s; font-size: 11px; }
+        .btn-export i { font-size: 18px; }
+        .btn-png { background: linear-gradient(135deg, #444, #222); border: 1px solid #555; }
+        .btn-png:hover { background: var(--success); transform: translateY(-2px); }
+        .btn-pdf { background: linear-gradient(135deg, #444, #222); border: 1px solid #555; }
+        .btn-pdf:hover { background: var(--pdf-color); transform: translateY(-2px); }
+
+        .layers-list { margin-top: 10px; max-height: 200px; overflow-y: auto; border: 1px solid #222; border-radius: 4px; }
+        .layer-item { padding: 8px; font-size: 12px; border-bottom: 1px solid #222; cursor: pointer; display: flex; justify-content: space-between; }
+        .layer-item:hover { background: #1a1a1a; }
+        .layer-item.selected { background: var(--accent); color: white; }
+
+        .btn-small { background: #222; border: 1px solid #333; color: white; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-small:hover { background: var(--accent); }
+        
+        .btn-delete { width: 100%; margin-top: 10px; background: transparent; border: 1px solid #441111; color: #ff5555; padding: 10px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-delete:hover { background: #441111; }
+
+        .orientation-switch { display: flex; background: #000; border-radius: 4px; padding: 2px; margin-bottom: 10px; }
+        .orient-btn { flex: 1; padding: 6px; border: none; background: transparent; color: #666; font-size: 10px; cursor: pointer; border-radius: 3px; }
+        .orient-btn.active { background: var(--accent); color: white; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">TUVAL <small style="font-size: 10px; opacity: 0.5;">STUDIO 6.5</small></div>
+        <div class="zoom-controls">
+            <span style="font-size: 12px; color: #666; margin-right: 5px;">Büyüteç:</span>
+            <input type="range" id="zoom-slider" min="0.1" max="1.5" step="0.05" value="0.5" oninput="applyZoom(this.value)" style="width: 100px;" />
+        </div>
+        <div>
+            <button class="btn-small" onclick="saveToLocal()"><i class="fa-solid fa-save"></i> Kaydet</button>
+        </div>
+    </header>
+
+    <div class="main-app">
+        <aside class="side-tools">
+            <div class="group">
+                <h4>Şablonlar (10+)</h4>
+                <div class="shape-grid">
+                    <button class="btn-shape" onclick="loadTemplate('cyber')">Cyber</button>
+                    <button class="btn-shape" onclick="loadTemplate('minimal')">Minimal</button>
+                    <button class="btn-shape" onclick="loadTemplate('dark')">Dark</button>
+                    <button class="btn-shape" onclick="loadTemplate('neo')">Neo</button>
+                    <button class="btn-shape" onclick="loadTemplate('vogue')">Moda</button>
+                    <button class="btn-shape" onclick="loadTemplate('techno')">Teknik</button>
+                    <button class="btn-shape" onclick="loadTemplate('nature')">Doğa</button>
+                    <button class="btn-shape" onclick="loadTemplate('abstract')">Soyut</button>
+                    <button class="btn-shape" onclick="loadTemplate('bauhaus')">Bauhaus</button>
+                    <button class="btn-shape" onclick="loadTemplate('luxury')">Premium</button>
+                  <button class="btn-shape" onclick="loadTemplate('retro_wave')">Retro Wave</button>
+                  <button class="btn-shape" onclick="loadTemplate('modern_art')">Modern Art</button>
+                  
+                </div>
+            </div>
+
+            <div class="group">
+                <h4>Yeni Ekle</h4>
+                <button class="btn-action" onclick="addEl('title')"><i class="fa-solid fa-heading"></i> Büyük Başlık</button>
+                <button class="btn-action" onclick="addEl('text')"><i class="fa-solid fa-paragraph"></i> Metin Kutusu</button>
+                <button class="btn-action" onclick="document.getElementById('img-upload').click()"><i class="fa-solid fa-image"></i> Görsel Yükle</button>
+                <input type="file" id="img-upload" hidden accept="image/*" onchange="handleImage(this)" />
+            </div>
+
+            <div class="group">
+                <h4>Şekiller</h4>
+                <div class="shape-grid">
+                    <button class="btn-shape" onclick="addEl('rect')"><i class="fa-regular fa-square"></i></button>
+                    <button class="btn-shape" onclick="addEl('circle')"><i class="fa-regular fa-circle"></i></button>
+                    <button class="btn-shape" onclick="addEl('star')"><i class="fa-regular fa-star"></i></button>
+                    <button class="btn-shape" onclick="addEl('triangle')">▲</button>
+                    <button class="btn-shape" onclick="addEl('arrow-r')"> → </button>
+                    <button class="btn-shape" onclick="addEl('arrow-l')"> ← </button>
+                    <button class="btn-shape" onclick="addEl('arrow-u')"> ↑ </button>
+                    <button class="btn-shape" onclick="addEl('arrow-d')"> ↓ </button>
+                </div>
+            </div>
+
+            <div class="group">
+                <h4>Tuval Ayarları</h4>
+                <label>Yönlendirme</label>
+                <div class="orientation-switch">
+                    <button id="orient-p" class="orient-btn active" onclick="setOrientation('p')">DİKEY</button>
+                    <button id="orient-l" class="orient-btn" onclick="setOrientation('l')">YATAY</button>
+                </div>
+                
+                <label>Boyut & Arkaplan</label>
+                <select id="size-selector" onchange="changeSize()">
+                    <option value="A3">A3 Poster</option>
+                    <option value="STORY">Instagram Story</option>
+                    <option value="A4">A4 Broşür</option>
+                    <option value="SQUARE">Kare Tasarım</option>
+                </select>
+                <input type="color" id="bg-picker" value="#ffffff" oninput="canvas.style.background = this.value" style="margin-top:5px; height:30px;"/>
+            </div>
+        </aside>
+
+        <main class="viewport">
+            <div id="poster-canvas">
+                <div id="guide-v" class="guide"></div>
+                <div id="guide-h" class="guide"></div>
+            </div>
+        </main>
+
+        <aside class="properties-panel">
+            <h4>Özellikler</h4>
+            <div id="no-selection" style="padding:20px; text-align:center; color:#444;">Düzenlemek için bir eleman seçin</div>
+
+            <div id="prop-controls" style="display:none;">
+                <div class="control-group">
+                    <label>Renkler</label>
+                    <div style="display:flex; gap:5px;">
+                        <input type="color" id="text-color-picker" title="Yazı Rengi" oninput="updateStyle('color', this.value)" />
+                        <input type="color" id="fill-color-picker" title="Dolgu Rengi" oninput="updateFillColor(this.value)" />
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Tipografi</label>
+                    <select id="f-family" onchange="updateStyle('fontFamily', this.value)">
+                      
+                       <option value="'Inter'">Inter (Modern Sans)</option>
+    <option value="'Space Grotesk'">Space Grotesk (Tech)</option>
+    <option value="'Unbounded'">Unbounded (Geniş & Kalın)</option>
+    
+    <option value="'Anton'">Anton (Dar & Güçlü)</option>
+    <option value="'Righteous'">Righteous (Fütüristik)</option>
+    <option value="'Monoton'">Monoton (Retro Çizgili)</option>
+    <option value="'Bangers'">Bangers (Çizgi Roman)</option>
+    
+    <option value="'Cinzel'">Cinzel (Roma Stili)</option>
+    <option value="'Playfair Display'">Playfair Display (Zarif Serif)</option>
+    
+    <option value="'Permanent Marker'">Permanent Marker (Sokak Stili)</option>
+    <option value="'Fascinate Inline'">Fascinate (Art Deco)</option>
+    
+    <option value="'JetBrains Mono'">JetBrains Mono (Yazılımcı Stili)</option>
+    <option value="'Bebas Neue'">Bebas Neue (Klasik Poster)</option>
+    <option value="'Archivo Black'">Archivo Black (Brütalist)</option>
+    <option value="'Kanit'">Kanit (Modern İmpakt)</option>
+    <option value="'Russo One'">Russo One (Stratejik/Askeri)</option>
+    <option value="'Syne'">Syne (Sanatsal & Geniş)</option>
+    <option value="'Outfit'">Outfit (Geometrik/Lüks)</option>
+    <option value="'Work Sans'">Work Sans (Ekstra Bold)</option>
+    <option value="'Lexend'">Lexend (Okunabilir/Temiz)</option>
+    <option value="'Yanone Kaffeesatz'">Yanone Kaffeesatz (İnce & Uzun)</option>
+    <option value="'Philosopher'">Philosopher (Kıvrımlı/Klasik)</option>
+    <option value="'Tenor Sans'">Tenor Sans (Modern Serif)</option>
+                    </select>
+                    <input type="number" id="f-size-num" style="margin-top:5px;" oninput="updateStyle('fontSize', this.value + 'px')" />
+                </div>
+
+                <div class="control-group">
+                    <label>Görünüm & Filtreler</label>
+                    <label style="font-size:9px; margin-top:10px;">Opasite (Saydamlık)</label>
+                    <input type="range" min="0" max="1" step="0.01" id="o-range" oninput="applyFilters()" />
+                    
+                    <label style="font-size:9px; margin-top:10px;">Parlaklık</label>
+                    <input type="range" min="0" max="200" step="1" value="100" id="b-range" oninput="applyFilters()" />
+
+                    <label style="font-size:9px; margin-top:10px;">Bulanıklık (Blur)</label>
+                    <input type="range" min="0" max="20" step="0.5" value="0" id="blur-range" oninput="applyFilters()" />
+                </div>
+
+                <div class="control-group">
+                    <label>Katman Sırası</label>
+                    <div style="display:flex; gap:5px;">
+                        <button class="btn-small" style="flex:1" onclick="changeLayer('up')"><i class="fa-solid fa-layer-group"></i> Öne</button>
+                        <button class="btn-small" style="flex:1" onclick="changeLayer('down')"><i class="fa-solid fa-layer-group"></i> Arkaya</button>
+                    </div>
+                </div>
+              
+              <div class="control-group">
+    <label>Metin Ayarları</label>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
+        <div>
+            <label style="font-size:8px;">Harf Boşluğu</label>
+            <input type="number" step="1" value="0" id="letter-spacing-input" oninput="updateStyle('letterSpacing', this.value + 'px')" />
+        </div>
+        <div>
+            <label style="font-size:8px;">Satır Arası</label>
+            <input type="number" step="0.1" value="1.2" id="line-height-input" oninput="updateStyle('lineHeight', this.value)" />
+        </div>
+    </div>
+
+    <label style="font-size:8px; margin-top:5px;">Hizalama & Stil</label>
+    <div style="display:flex; gap:2px;">
+        <button class="btn-small" style="flex:1" onclick="updateStyle('textAlign', 'left')"><i class="fa-solid fa-align-left"></i></button>
+        <button class="btn-small" style="flex:1" onclick="updateStyle('textAlign', 'center')"><i class="fa-solid fa-align-center"></i></button>
+        <button class="btn-small" style="flex:1" onclick="updateStyle('textAlign', 'right')"><i class="fa-solid fa-align-right"></i></button>
+        <button class="btn-small" style="flex:1" onclick="updateStyle('textTransform', selectedEl.style.textTransform === 'uppercase' ? 'none' : 'uppercase')"><b>AA</b></button>
+    </div>
+</div>
+
+<!-- Metin gölgesi seçeneği -->
+<div class="control-group">
+    <label>Metin Gölgesi (Kontrast)</label>
+    <select id="text-shadow-select" onchange="updateStyle('textShadow', this.value)">
+        <option value="none">Yok</option>
+        <option value="2px 2px 4px rgba(0,0,0,0.5)">Hafif</option>
+        <option value="4px 4px 0px #ff3e00">Retro (Accent)</option>
+        <option value="0px 0px 10px rgba(255,255,255,0.8)">Parlama (Glow)</option>
+        <option value="5px 5px 0px #000">Sert Gölge</option>
+    </select>
+</div> 
+
+                <div class="export-group">
+                    <button class="btn-export btn-png" onclick="exportAs('png')">
+                        <i class="fa-solid fa-file-image"></i>
+                        PNG KAYDET
+                    </button>
+                    <button class="btn-export btn-pdf" onclick="exportAs('pdf')">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        PDF KAYDET
+                    </button>
+                </div>
+                <button class="btn-delete" onclick="deleteEl()"><i class="fa-solid fa-trash"></i> SEÇİLENİ SİL</button>
+            </div>
+
+            <h4 style="margin-top:20px;">Katmanlar</h4>
+            <div id="layers-container" class="layers-list"></div>
+        </aside>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('poster-canvas');
+        const layersContainer = document.getElementById('layers-container');
+        let selectedEl = null;
+        let zoomLevel = 0.5;
+        let currentOrientation = 'p';
+
+        // --- SVG Şekil Verileri (Kareleşmeyi Önlemek İçin) ---
+        const svgPaths = {
+            'triangle': 'M 50,0 L 100,100 L 0,100 Z',
+            'star': 'M 50,0 L 61,35 L 98,35 L 68,57 L 79,91 L 50,70 L 21,91 L 32,57 L 2,35 L 39,35 Z',
+            'arrow-r': 'M 0,20 L 60,20 L 60,0 L 100,50 L 60,100 L 60,80 L 0,80 Z',
+            'arrow-l': 'M 100,20 L 40,20 L 40,0 L 0,50 L 40,100 L 40,80 L 100,80 Z',
+            'arrow-u': 'M 20,100 L 20,40 L 0,40 L 50,0 L 100,40 L 80,40 L 80,100 Z',
+            'arrow-d': 'M 20,0 L 20,60 L 0,60 L 50,100 L 100,60 L 80,60 L 80,0 Z'
+        };
+
+        window.onload = () => {
+            const saved = localStorage.getItem('lumina_v11_save');
+            if(saved) {
+                canvas.innerHTML = saved + `<div id="guide-v" class="guide"></div><div id="guide-h" class="guide"></div>`;
+                document.querySelectorAll('.element').forEach(el => {
+                    makeDraggable(el);
+                    addResizers(el);
+                });
+            }
+            updateLayersList();
+        };
+
+        function applyZoom(val) {
+            zoomLevel = parseFloat(val);
+            canvas.style.transform = `scale(${zoomLevel})`;
+        }
+
+        function setOrientation(o) {
+            currentOrientation = o;
+            document.getElementById('orient-p').classList.toggle('active', o === 'p');
+            document.getElementById('orient-l').classList.toggle('active', o === 'l');
+            changeSize();
+        }
+
+        function changeSize() {
+            const val = document.getElementById('size-selector').value;
+            const sizes = { 'A3': [842, 1191], 'STORY': [1080, 1920], 'A4': [595, 842], 'SQUARE': [1000, 1000] };
+            let w = sizes[val][0], h = sizes[val][1];
+            if (currentOrientation === 'l' && val !== 'SQUARE') [w, h] = [h, w];
+            canvas.style.width = w + 'px';
+            canvas.style.height = h + 'px';
+        }
+
+        function addEl(type, props = {}) {
+    const div = document.createElement('div');
+    div.className = 'element';
+    div.id = 'el-' + Date.now();
+    div.style.left = props.left || '100px';
+    div.style.top = props.top || '100px';
+    div.style.zIndex = canvas.querySelectorAll('.element').length + 1;
+    
+    // Filtreler ve temel özellikler
+    div.dataset.brightness = props.brightness || 100;
+    div.dataset.blur = props.blur || 0;
+    div.style.opacity = props.opacity || 1;
+    div.style.filter = `brightness(${div.dataset.brightness}%) blur(${div.dataset.blur}px)`;
+
+    if (type === 'title' || type === 'text') {
+        div.innerText = props.text || (type === 'title' ? 'BAŞLIK' : 'Metin içeriği...');
+        div.style.fontSize = props.fontSize || (type === 'title' ? '80px' : '24px');
+        div.style.fontFamily = props.fontFamily || "'Bebas Neue'";
+        div.style.color = props.color || '#000000';
+        div.style.width = props.width || 'auto'; // Kopyalama için eklendi
+        div.ondblclick = () => { div.contentEditable = true; div.focus(); };
+        div.onblur = () => { div.contentEditable = false; };
+    } else if (type === 'image') {
+        div.innerHTML = `<img src="${props.src}">`;
+        div.style.width = props.width || '300px';
+        div.style.height = props.height || 'auto';
+    } else if (type === 'rect' || type === 'circle') {
+        div.style.width = props.width || '150px';
+        div.style.height = props.height || '150px';
+        div.style.backgroundColor = props.backgroundColor || '#ff3e00';
+        if(type === 'circle') div.style.borderRadius = '50%';
+        div.dataset.shapeType = type; // Kimlik eklendi
+    } else {
+        // SVG Şekiller (Star, Triangle vb.)
+        div.style.width = props.width || '150px';
+        div.style.height = props.height || '150px';
+        const color = props.backgroundColor || '#ff3e00';
+        div.innerHTML = `<svg class="shape-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            <path d="${svgPaths[type]}" fill="${color}" />
+                         </svg>`;
+        div.dataset.shapeType = type; // Kimlik eklendi
+    }
+
+    canvas.appendChild(div);
+    makeDraggable(div);
+    addResizers(div);
+    select(div);
+    updateLayersList();
+}
+
+        function applyFilters() {
+            if (!selectedEl) return;
+            const op = document.getElementById('o-range').value;
+            const br = document.getElementById('b-range').value;
+            const bl = document.getElementById('blur-range').value;
+
+            selectedEl.style.opacity = op;
+            selectedEl.dataset.brightness = br;
+            selectedEl.dataset.blur = bl;
+            
+            // Filtreleri birleştirerek uygula
+            selectedEl.style.filter = `brightness(${br}%) blur(${bl}px)`;
+        }
+
+        function updateFillColor(val) {
+            if (!selectedEl) return;
+            const svgPath = selectedEl.querySelector('path');
+            if (svgPath) {
+                svgPath.setAttribute('fill', val);
+            } else {
+                selectedEl.style.backgroundColor = val;
+            }
+        }
+
+        function select(el) {
+            if (selectedEl) selectedEl.classList.remove('active');
+            selectedEl = el;
+            selectedEl.classList.add('active');
+            document.getElementById('no-selection').style.display = 'none';
+            document.getElementById('prop-controls').style.display = 'block';
+            
+            // Kontrolleri seçili elemana göre güncelle
+            document.getElementById('f-size-num').value = parseInt(el.style.fontSize) || 0;
+            document.getElementById('o-range').value = el.style.opacity || 1;
+            document.getElementById('b-range').value = el.dataset.brightness || 100;
+            document.getElementById('blur-range').value = el.dataset.blur || 0;
+            
+            // Yeni eklenen tipografi kontrolleri güncelle
+    document.getElementById('letter-spacing-input').value = parseInt(el.style.letterSpacing) || 0;
+    document.getElementById('line-height-input').value = parseFloat(el.style.lineHeight) || 1.2;
+    document.getElementById('text-shadow-select').value = el.style.textShadow || "none";
+          
+            updateLayersList();
+        }
+
+        // --- DİĞER FONKSİYONLAR ---
+        function makeDraggable(el) {
+            el.addEventListener('mousedown', function(e) {
+                if (e.target.classList.contains('resizer') || el.contentEditable === "true") return;
+                select(el);
+                let px = e.clientX, py = e.clientY;
+                function move(e) {
+                    let dx = (e.clientX - px) / zoomLevel;
+                    let dy = (e.clientY - py) / zoomLevel;
+                    el.style.left = el.offsetLeft + dx + 'px';
+                    el.style.top = el.offsetTop + dy + 'px';
+                    px = e.clientX; py = e.clientY;
+                }
+                function stop() { document.removeEventListener('mousemove', move); }
+                document.addEventListener('mousemove', move);
+                document.addEventListener('mouseup', stop);
+            });
+        }
+
+        function addResizers(el) {
+            const handle = document.createElement('div');
+            handle.className = 'resizer br';
+            el.appendChild(handle);
+            handle.addEventListener('mousedown', function(e) {
+                e.stopPropagation();
+                let startW = el.offsetWidth, startH = el.offsetHeight, startX = e.clientX, startY = e.clientY;
+                function resize(e) {
+                    el.style.width = startW + (e.clientX - startX) / zoomLevel + 'px';
+                    el.style.height = startH + (e.clientY - startY) / zoomLevel + 'px';
+                }
+                function stop() { document.removeEventListener('mousemove', resize); }
+                document.addEventListener('mousemove', resize);
+                document.addEventListener('mouseup', stop);
+            });
+        }
+
+        function updateStyle(prop, val) { if (selectedEl) selectedEl.style[prop] = val; }
+
+        function updateLayersList() {
+            layersContainer.innerHTML = '';
+            Array.from(canvas.querySelectorAll('.element')).reverse().forEach(el => {
+                const item = document.createElement('div');
+                item.className = `layer-item ${el === selectedEl ? 'selected' : ''}`;
+                item.innerHTML = `<span><i class="fa-solid fa-layer-group"></i> ${el.innerText.substring(0,10) || "Element"}</span>`;
+                item.onclick = () => select(el);
+                layersContainer.appendChild(item);
+            });
+        }
+
+        function changeLayer(dir) {
+            if (!selectedEl) return;
+            let z = parseInt(selectedEl.style.zIndex) || 1;
+            selectedEl.style.zIndex = dir === 'up' ? z + 1 : Math.max(1, z - 1);
+            updateLayersList();
+        }
+
+        function deleteEl() {
+            if(selectedEl) { selectedEl.remove(); selectedEl = null; updateLayersList(); }
+        }
+
+        async function exportAs(format) {
+            if (selectedEl) selectedEl.classList.remove('active');
+            const originalTransform = canvas.style.transform;
+            canvas.style.transform = 'none';
+            
+            // html2canvas ayarları - SVG desteği için
+            const capture = await html2canvas(canvas, { 
+                scale: 2, 
+                useCORS: true, 
+                backgroundColor: canvas.style.background,
+                logging: false
+            });
+            
+            if (format === 'png') {
+                const link = document.createElement('a');
+                link.download = `lumina-${Date.now()}.png`;
+                link.href = capture.toDataURL('image/png');
+                link.click();
+            } else {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF(canvas.offsetWidth > canvas.offsetHeight ? 'l' : 'p', 'px', [canvas.offsetWidth, canvas.offsetHeight]);
+                pdf.addImage(capture.toDataURL('image/png'), 'PNG', 0, 0, canvas.offsetWidth, canvas.offsetHeight);
+                pdf.save('design.pdf');
+            }
+            canvas.style.transform = originalTransform;
+        }
+
+        function handleImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => addEl('image', { src: e.target.result });
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function saveToLocal() {
+            const clone = canvas.cloneNode(true);
+            clone.querySelectorAll('.resizer, .guide').forEach(r => r.remove());
+            localStorage.setItem('lumina_v11_save', clone.innerHTML);
+            alert("Kaydedildi!");
+        }
+
+       function loadTemplate(type) {
+    // Mevcut elementleri temizle (Kılavuz çizgileri hariç)
+    canvas.querySelectorAll('.element').forEach(el => el.remove());
+    
+    const templates = {
+        cyber: () => {
+            canvas.style.background = '#050505';
+            addEl('title', { text: 'NEON FUTURE', color: '#00f2ff', top: '20%', left: '10%' });
+            addEl('rect', { backgroundColor: '#ff00ff', top: '35%', left: '10%' });
+        },
+        minimal: () => {
+            canvas.style.background = '#ffffff';
+            addEl('circle', { backgroundColor: '#f0f0f0', top: '10%', left: '10%' });
+            addEl('text', { text: 'Less is more.', color: '#333', top: '80%', left: '10%' });
+        },
+        dark: () => {
+            canvas.style.background = '#111';
+            addEl('title', { text: 'DARKNESS', color: '#fff', top: '40%', left: '15%' });
+            addEl('rect', { backgroundColor: '#333', top: '55%', left: '15%' });
+        },
+        neo: () => {
+            canvas.style.background = '#f1c40f';
+            addEl('title', { text: 'RETRO', color: '#2c3e50', top: '10%', left: '10%' });
+            addEl('rect', { backgroundColor: '#e67e22', top: '50%', left: '0' });
+        },
+        vogue: () => {
+            canvas.style.background = '#fff';
+            addEl('title', { text: 'VOGUE', fontFamily: "'Playfair Display'", top: '10%', left: '5%' });
+            addEl('text', { text: 'AUTUMN / WINTER', top: '25%', left: '7%', color: '#000' });
+        },
+        techno: () => {
+            canvas.style.background = '#001a33';
+            addEl('arrow-r', { backgroundColor: '#00ff00', top: '10%', left: '10%' });
+            addEl('text', { text: 'SYSTEM_READY', color: '#00ff00', top: '25%', left: '10%' });
+        },
+        nature: () => {
+            canvas.style.background = '#e8f5e9';
+            addEl('circle', { backgroundColor: '#2e7d32', top: '15%', left: '25%' });
+            addEl('text', { text: 'ECO LIVING', color: '#1b5e20', top: '45%', left: '25%' });
+        },
+        abstract: () => {
+            canvas.style.background = '#222';
+            addEl('triangle', { backgroundColor: '#ff3e00', top: '10%', left: '10%' });
+            addEl('star', { backgroundColor: '#ffcc00', top: '40%', left: '50%' });
+        },
+        bauhaus: () => {
+            canvas.style.background = '#f5f5f5';
+            addEl('rect', { backgroundColor: '#e74c3c', top: '10%', left: '10%' });
+            addEl('circle', { backgroundColor: '#f1c40f', top: '10%', left: '40%' });
+            addEl('title', { text: 'BAUHAUS', color: '#000', top: '40%', left: '10%' });
+        },
+        luxury: () => {
+            canvas.style.background = '#1a1a1a';
+            addEl('rect', { backgroundColor: '#d4af37', top: '50%', left: '10%' });
+            addEl('title', { text: 'PREMIUM', color: '#d4af37', top: '40%', left: '20%' });
+        },
+      // Sizin eklediğiniz yeni şablonlar
+                retro_wave: () => {
+                    canvas.style.background = 'linear-gradient(180deg, #240b36 0%, #c31432 100%)';
+                    addEl('circle', { backgroundColor: '#ffcc00', width: '300px', height: '300px', top: '15%', left: '30%' });
+                    addEl('title', { text: 'RETRO VIBE', color: '#fff', top: '50%', left: '15%', fontSize: '100px' });
+                    addEl('rect', { backgroundColor: '#00ccff', width: '100%', height: '5px', top: '70%', left: '0' });
+                },
+                modern_art: () => {
+                    canvas.style.background = '#fcfaf2';
+                    addEl('triangle', { backgroundColor: '#222', width: '400px', height: '400px', top: '10%', left: '10%' });
+                    addEl('rect', { backgroundColor: '#ff3e00', width: '150px', height: '600px', top: '5%', left: '70%' });
+                    addEl('text', { text: '2026 EXHIBITION', color: '#000', top: '85%', left: '5%' });
+                }
+    };
+
+    if (templates[type]) {
+        templates[type]();
+        updateLayersList(); // Katman listesini sağ tarafta güncelle
+      
+    }
+}
+       let clipboard = null; 
+
+function copyElement() {
+    if (!selectedEl) return;
+    clipboard = {
+        type: selectedEl.dataset.shapeType || (selectedEl.querySelector('img') ? 'image' : (parseInt(selectedEl.style.fontSize) > 40 ? 'title' : 'text')),
+        props: {
+            width: selectedEl.style.width,
+            height: selectedEl.style.height,
+            top: (parseInt(selectedEl.style.top) + 30) + "px",
+            left: (parseInt(selectedEl.style.left) + 30) + "px",
+            backgroundColor: selectedEl.style.backgroundColor || (selectedEl.querySelector('path')?.getAttribute('fill')),
+            color: selectedEl.style.color,
+            fontSize: selectedEl.style.fontSize,
+            fontFamily: selectedEl.style.fontFamily,
+            text: selectedEl.innerText,
+            src: selectedEl.querySelector('img')?.src,
+            opacity: selectedEl.style.opacity,
+            brightness: selectedEl.dataset.brightness,
+            blur: selectedEl.dataset.blur
+        }
+    };
+    selectedEl.style.outline = "3px solid white";
+    setTimeout(() => selectedEl.style.outline = "none", 200);
+}
+
+function pasteElement() {
+    if (!clipboard) return;
+    addEl(clipboard.type, clipboard.props);
+    clipboard.props.top = (parseInt(clipboard.props.top) + 30) + "px";
+    clipboard.props.left = (parseInt(clipboard.props.left) + 30) + "px";
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.target.contentEditable === "true" || e.target.tagName === 'INPUT') return;
+    if (e.ctrlKey && e.key.toLowerCase() === 'c') { e.preventDefault(); copyElement(); }
+    if (e.ctrlKey && e.key.toLowerCase() === 'v') { e.preventDefault(); pasteElement(); }
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+        if(selectedEl) { e.preventDefault(); deleteEl(); }
+    }
+});
+
+
+
+    </script>
+</body>
+</html>
+    
+  </body>
+  
+</html>
